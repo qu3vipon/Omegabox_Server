@@ -18,9 +18,9 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView as DefaultTokenVerifyView,
 )
 
+from members.excepts import UsernameDuplicateException
 from movies.models import Rating, MovieLike
 from reservations.models import Reservation
-from utils.excepts import UsernameDuplicateException
 from .serializers import (
     SignUpSerializer, MemberDetailSerializer, LoginSerializer, TokenRefreshSerializer,
     TokenRefreshResultSerializer, JWTSerializer, CheckUsernameDuplicateSerializer, LikeMoviesSerializer,

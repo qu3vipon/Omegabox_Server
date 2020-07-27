@@ -17,9 +17,9 @@ from movies.models import Movie, Rating, MovieLike
 from movies.serializers import MovieTimelineSerializer
 from reservations.models import Reservation
 from utils.custom_functions import reformat_duration, check_google_oauth_api
-from utils.excepts import (
-    UsernameDuplicateException, TakenEmailException, GoogleUniqueIdDuplicatesException,
-    UnidentifiedUniqueIdException, LoginFailException, SocialSignUpUsernameFieldException
+from .excepts import (
+    TakenEmailException, UsernameDuplicateException, GoogleUniqueIdDuplicatesException,
+    SocialSignUpUsernameFieldException, LoginFailException, UnidentifiedUniqueIdException
 )
 from .models import Profile
 
@@ -46,19 +46,17 @@ class SignUpSerializer(RegisterSerializer):
         except ObjectDoesNotExist:
             return username
 
+    def validate(self, data):
+        data = super().validate(data)
+        data['password'] = data.pop('password1')
+        data.pop('password2')
+        return data
+
+    # django-rest-auth 사용을 위해 user 인스턴스를 반환하는 save() 메소드 재정의
+    # https://django-rest-auth.readthedocs.io/en/latest/configuration.html
     def save(self, request):
         self.is_valid()
-        validated_data = self.validated_data
-        member = Member.objects.create(
-            username=validated_data['username'],
-            name=validated_data['name'],
-            email=validated_data['email'],
-            birth_date=validated_data['birth_date'],
-            mobile=validated_data['mobile']
-        )
-        member.set_password(validated_data.pop('password1'))
-        member.save()
-        return member
+        return Member.objects.create(**self.validated_data)
 
 
 class SocialSignUpSerializer(SignUpSerializer):

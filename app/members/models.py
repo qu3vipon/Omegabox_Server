@@ -79,8 +79,6 @@ class Profile(models.Model):
         default='basic',
     )
     point = models.PositiveIntegerField(default=0)
-
-    # 프론트와 협의 필요
     is_disabled = models.BooleanField(default=False)
 
     def __str__(self):
