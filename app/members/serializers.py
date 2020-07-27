@@ -19,8 +19,8 @@ from reservations.models import Reservation
 from utils.custom_functions import reformat_duration, check_google_oauth_api
 from .excepts import (
     TakenEmailException, UsernameDuplicateException, GoogleUniqueIdDuplicatesException,
-    SocialSignUpUsernameFieldException, LoginFailException, UnidentifiedUniqueIdException
-)
+    SocialSignUpUsernameFieldException, LoginFailException, UnidentifiedUniqueIdException,
+    PasswordNotMatchingException)
 from .models import Profile
 
 Member = get_user_model()
@@ -47,7 +47,8 @@ class SignUpSerializer(RegisterSerializer):
             return username
 
     def validate(self, data):
-        data = super().validate(data)
+        if data['password1'] != data['password2']:
+            raise PasswordNotMatchingException
         data['password'] = data.pop('password1')
         data.pop('password2')
         return data
