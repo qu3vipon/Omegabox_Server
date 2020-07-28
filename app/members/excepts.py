@@ -34,6 +34,7 @@ class SocialSignUpUsernameFieldException(APIException):
     default_code = 'SocialSignUpUsernameField'
 
 
+# Social Log In
 class LoginFailException(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = '로그인 실패 - username과 password를 확인해주세요.'

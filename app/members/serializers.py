@@ -123,9 +123,7 @@ class LoginSerializer(DefaultLoginSerializer):
     username = serializers.CharField(required=True)
 
 
-class SocialLoginSerializer(DefaultLoginSerializer):
-    email = None
-    username = serializers.CharField(required=True)
+class SocialLoginSerializer(LoginSerializer):
     google_id_token = serializers.CharField(required=True, write_only=True)
 
     def validate(self, data):
@@ -165,7 +163,6 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             'genres',
             'time',
             'is_disabled',
-
         ]
 
     def get_regions(self, profile):

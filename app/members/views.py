@@ -34,7 +34,7 @@ Member = get_user_model()
 @method_decorator(name='post', decorator=swagger_auto_schema(
     operation_summary='Sign Up',
     operation_description='회원가입',
-    responses={200: JWTSerializer()},
+    responses={201: JWTSerializer()},
 ))
 class SignUpView(RegisterView):
     serializer_class = SignUpSerializer
@@ -43,7 +43,7 @@ class SignUpView(RegisterView):
 @method_decorator(name='post', decorator=swagger_auto_schema(
     operation_summary='Social Sign Up',
     operation_description='소셜 회원가입 - 비밀번호 자동설정(username과 동일)',
-    responses={200: JWTSerializer()},
+    responses={201: JWTSerializer()},
 ))
 class SocialSignUpView(RegisterView):
     serializer_class = SocialSignUpSerializer
