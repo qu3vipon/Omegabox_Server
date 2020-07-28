@@ -150,8 +150,8 @@ class TokenRefreshSerializer(DefaultTokenRefreshSerializer):
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
-    regions = serializers.SerializerMethodField('get_regions')
-    genres = serializers.SerializerMethodField('get_genres')
+    regions = serializers.StringRelatedField(many=True)
+    genres = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Profile
@@ -164,12 +164,6 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             'time',
             'is_disabled',
         ]
-
-    def get_regions(self, profile):
-        return [region.name for region in profile.regions.all()]
-
-    def get_genres(self, profile):
-        return [genre.name for genre in profile.genres.all()]
 
 
 class MemberDetailSerializer(serializers.ModelSerializer):
@@ -199,7 +193,7 @@ class MemberDetailSerializer(serializers.ModelSerializer):
             schedules__reservations__member=member,
             schedules__reservations__payment__isnull=False,
             schedules__reservations__payment__is_canceled=False,
-            schedules__start_time__gt=datetime.datetime.today()
+            schedules__start_time__gt=datetime.datetime.today(),
         ).count()
 
     def get_watched_movies_count(self, member):
@@ -207,7 +201,7 @@ class MemberDetailSerializer(serializers.ModelSerializer):
             schedules__reservations__member=member,
             schedules__reservations__payment__isnull=False,
             schedules__reservations__payment__is_canceled=False,
-            schedules__start_time__lte=datetime.datetime.today()
+            schedules__start_time__lte=datetime.datetime.today(),
         ).count()
 
     def get_like_movies_count(self, member):
