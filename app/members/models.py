@@ -12,17 +12,17 @@ from config.settings._base import AUTH_USER_MODEL
 
 
 class BaseMemberMixin(models.Model):
-    name = models.CharField(max_length=30)
-    mobile = PhoneNumberField(unique=True)
-    birth_date = models.DateField()
+    name = models.CharField('이름', max_length=30)
+    mobile = PhoneNumberField('휴대폰 번호', unique=True)
+    birth_date = models.DateField('생년월일')
 
     class Meta:
         abstract = True
 
 
 class Member(AbstractUser, BaseMemberMixin):
-    email = models.EmailField(unique=True)
-    unique_id = models.CharField(max_length=50, blank=True)
+    email = models.EmailField('이메일', unique=True)
+    unique_id = models.CharField('googleId', max_length=50, blank=True)
 
     REQUIRED_FIELDS = ['name', 'email', 'mobile', 'birth_date']
 

@@ -57,7 +57,12 @@ class SignUpSerializer(RegisterSerializer):
     # https://django-rest-auth.readthedocs.io/en/latest/configuration.html
     def save(self, request):
         self.is_valid()
-        return Member.objects.create(**self.validated_data)
+        validated_data = self.validated_data
+        password = validated_data.pop('password')
+        member = Member.objects.create(**validated_data)
+        member.set_password(password)
+        member.save()
+        return member
 
 
 class SocialSignUpSerializer(SignUpSerializer):
@@ -76,17 +81,12 @@ class SocialSignUpSerializer(SignUpSerializer):
             raise SocialSignUpUsernameFieldException
         return data
 
+    # django-rest-auth 사용을 위해 user 인스턴스를 반환하는 save() 메소드 재정의
+    # https://django-rest-auth.readthedocs.io/en/latest/configuration.html
     def save(self, request):
         self.is_valid()
         validated_data = self.validated_data
-        member = Member.objects.create(
-            username=validated_data['username'],
-            name=validated_data['name'],
-            email=validated_data['email'],
-            birth_date=validated_data['birth_date'],
-            mobile=validated_data['mobile'],
-            unique_id=validated_data['unique_id'],
-        )
+        member = Member.objects.create(**validated_data)
         member.set_password(validated_data['unique_id'])
         member.save()
         return member
