@@ -20,7 +20,8 @@ from utils.custom_functions import reformat_duration, check_google_oauth_api
 from .excepts import (
     TakenEmailException, UsernameDuplicateException, GoogleUniqueIdDuplicatesException,
     SocialSignUpUsernameFieldException, LoginFailException, UnidentifiedUniqueIdException,
-    PasswordNotMatchingException)
+    PasswordNotMatchingException
+)
 from .models import Profile
 
 Member = get_user_model()
@@ -306,12 +307,6 @@ class WatchedMoviesSerializer(serializers.ModelSerializer):
     def get_running_time(self, obj):
         return reformat_duration(obj.schedule.movie.running_time)
 
-    def get_directors(self, reservation):
-        return [director.name for director in reservation.schedule.movie.directors.all()]
-
-    def get_genres(self, reservation):
-        return [genre.name for genre in reservation.schedule.movie.genres.all()]
-
 
 class RatingMoviesSerializer(serializers.ModelSerializer):
     rating_id = serializers.IntegerField(source='id')
@@ -386,7 +381,6 @@ class ReservedMoviesSerializer(serializers.ModelSerializer):
         else:
             discount_rate = 0.02
 
-        # Payment.discount_price null=True, blank=True 빼고 default=0 하는 방안
         if not reservation.payment.discount_price:
             discount_price = 0
         else:
