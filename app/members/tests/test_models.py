@@ -2,23 +2,20 @@ from django.test import TestCase
 from model_bakery import baker
 from rest_framework.exceptions import ValidationError
 
-from test_utils.generators import gen_phonenumberfield
-
 
 class MemberModelTest(TestCase):
-    def setUp(self):
-        baker.generators.add('phonenumber_field.modelfields.PhoneNumberField', gen_phonenumberfield)
+    @classmethod
+    def setUpTestData(cls):
+        cls.member = baker.make('members.Member')
 
     def test_post_save_create_profile(self):
-        member = baker.make('members.Member')
+        member = self.member
         self.assertIsNotNone(member.profile)
 
 
 class ProfileModelTest(TestCase):
     @classmethod
-    def setUpClass(cls):
-        super(ProfileModelTest, cls).setUpClass()
-        baker.generators.add('phonenumber_field.modelfields.PhoneNumberField', gen_phonenumberfield)
+    def setUpTestData(cls):
         cls.regions = baker.make('theaters.Region', _quantity=3)
         cls.genres = baker.make('movies.Genre', _quantity=3)
         cls.region = baker.make('theaters.Region')

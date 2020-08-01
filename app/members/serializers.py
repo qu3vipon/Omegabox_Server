@@ -17,7 +17,7 @@ from movies.models import Movie, Rating, MovieLike
 from movies.serializers import MovieTimelineSerializer
 from reservations.models import Reservation
 from utils.custom_functions import reformat_duration, check_google_oauth_api
-from .excepts import (
+from .exceptions import (
     TakenEmailException, UsernameDuplicateException, GoogleUniqueIdDuplicatesException,
     SocialSignUpUsernameFieldException, LoginFailException, UnidentifiedUniqueIdException,
     PasswordNotMatchingException
