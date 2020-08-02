@@ -9,7 +9,7 @@ from .views import (
 app_name = 'members'
 urlpatterns = [
     path('signup/', SignUpView.as_view(), name='signup'),
-    path('signup/social/', SocialSignUpView.as_view()),
+    path('signup/social/', SocialSignUpView.as_view(), name='social_signup'),
     path('signup/check-username/', CheckUsernameDuplicateView.as_view()),
     path('login/', LoginView.as_view()),
     path('login/social/', SocialLoginView.as_view()),

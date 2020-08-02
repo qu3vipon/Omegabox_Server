@@ -3,10 +3,13 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
-from members.exceptions import UsernameDuplicateException, PasswordNotMatchingException
+from members.exceptions import (
+    UsernameDuplicateException, PasswordNotMatchingException,
+    GoogleUniqueIdDuplicatesException, SocialSignUpUsernameFieldException
+)
 
 
-class SignupViewTest(APITestCase):
+class SignUpViewTest(APITestCase):
     @classmethod
     def setUpTestData(cls):
         cls.url = reverse('members:signup')
@@ -67,6 +70,54 @@ class SignupViewTest(APITestCase):
             "birth_date": "2020-02-02",
             "password1": "testpassword123!",
             "password2": "testpassword123!",
+        }
+        response = self.client.post(self.url, user_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
+
+
+class SocialSignUpViewTest(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.url = reverse('members:social_signup')
+        cls.member = baker.make('members.Member', unique_id='UNIQUE_ID')
+
+    def test_duplicate_google_unique_id(self):
+        duplicate_unique_id = self.member.unique_id
+        user_data = {
+            "username": "email@email.com",
+            "email": "email@email.com",
+            "name": "name",
+            "mobile": "010-2222-3333",
+            "birth_date": "2020-02-02",
+            "unique_id": duplicate_unique_id,
+        }
+        response = self.client.post(self.url, user_data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['detail'].code, GoogleUniqueIdDuplicatesException.default_code)
+
+    def test_email_as_username(self):
+        user_data = {
+            "username": "ThisIsNotEmail",
+            "email": "email@email.com",
+            "name": "name",
+            "mobile": "010-2222-3333",
+            "birth_date": "2020-02-02",
+            "unique_id": "google_unique_id",
+        }
+        response = self.client.post(self.url, user_data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['detail'].code, SocialSignUpUsernameFieldException.default_code)
+
+    def test_create_member(self):
+        user_data = {
+            "username": "email@email.com",
+            "email": "email@email.com",
+            "name": "name",
+            "mobile": "010-2222-3333",
+            "birth_date": "2020-02-02",
+            "unique_id": "google_unique_id",
         }
         response = self.client.post(self.url, user_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
