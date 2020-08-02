@@ -2,7 +2,6 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=pycharm+all,linux,windows,macos,python,django
 
 ### Files ###
-app/.management/
 app/create_seats.py
 app/celerybeat-schedule.db
 

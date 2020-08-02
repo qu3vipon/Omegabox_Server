@@ -17,9 +17,10 @@ from movies.models import Movie, Rating, MovieLike
 from movies.serializers import MovieTimelineSerializer
 from reservations.models import Reservation
 from utils.custom_functions import reformat_duration, check_google_oauth_api
-from utils.excepts import (
-    UsernameDuplicateException, TakenEmailException, GoogleUniqueIdDuplicatesException,
-    UnidentifiedUniqueIdException, LoginFailException, SocialSignUpUsernameFieldException
+from .exceptions import (
+    TakenEmailException, UsernameDuplicateException, GoogleUniqueIdDuplicatesException,
+    SocialSignUpUsernameFieldException, LoginFailException, UnidentifiedUniqueIdException,
+    PasswordNotMatchingException
 )
 from .models import Profile
 
@@ -46,17 +47,21 @@ class SignUpSerializer(RegisterSerializer):
         except ObjectDoesNotExist:
             return username
 
+    def validate(self, data):
+        if data['password1'] != data['password2']:
+            raise PasswordNotMatchingException
+        data['password'] = data.pop('password1')
+        data.pop('password2')
+        return data
+
+    # django-rest-auth 사용을 위해 user 인스턴스를 반환하는 save() 메소드 재정의
+    # https://django-rest-auth.readthedocs.io/en/latest/configuration.html
     def save(self, request):
         self.is_valid()
         validated_data = self.validated_data
-        member = Member.objects.create(
-            username=validated_data['username'],
-            name=validated_data['name'],
-            email=validated_data['email'],
-            birth_date=validated_data['birth_date'],
-            mobile=validated_data['mobile']
-        )
-        member.set_password(validated_data.pop('password1'))
+        password = validated_data.pop('password')
+        member = Member.objects.create(**validated_data)
+        member.set_password(password)
         member.save()
         return member
 
@@ -77,17 +82,12 @@ class SocialSignUpSerializer(SignUpSerializer):
             raise SocialSignUpUsernameFieldException
         return data
 
+    # django-rest-auth 사용을 위해 user 인스턴스를 반환하는 save() 메소드 재정의
+    # https://django-rest-auth.readthedocs.io/en/latest/configuration.html
     def save(self, request):
         self.is_valid()
         validated_data = self.validated_data
-        member = Member.objects.create(
-            username=validated_data['username'],
-            name=validated_data['name'],
-            email=validated_data['email'],
-            birth_date=validated_data['birth_date'],
-            mobile=validated_data['mobile'],
-            unique_id=validated_data['unique_id'],
-        )
+        member = Member.objects.create(**validated_data)
         member.set_password(validated_data['unique_id'])
         member.save()
         return member
@@ -124,9 +124,7 @@ class LoginSerializer(DefaultLoginSerializer):
     username = serializers.CharField(required=True)
 
 
-class SocialLoginSerializer(DefaultLoginSerializer):
-    email = None
-    username = serializers.CharField(required=True)
+class SocialLoginSerializer(LoginSerializer):
     google_id_token = serializers.CharField(required=True, write_only=True)
 
     def validate(self, data):
@@ -153,8 +151,8 @@ class TokenRefreshSerializer(DefaultTokenRefreshSerializer):
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
-    regions = serializers.SerializerMethodField('get_regions')
-    genres = serializers.SerializerMethodField('get_genres')
+    regions = serializers.StringRelatedField(many=True)
+    genres = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Profile
@@ -166,14 +164,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             'genres',
             'time',
             'is_disabled',
-
         ]
-
-    def get_regions(self, profile):
-        return [region.name for region in profile.regions.all()]
-
-    def get_genres(self, profile):
-        return [genre.name for genre in profile.genres.all()]
 
 
 class MemberDetailSerializer(serializers.ModelSerializer):
@@ -203,7 +194,7 @@ class MemberDetailSerializer(serializers.ModelSerializer):
             schedules__reservations__member=member,
             schedules__reservations__payment__isnull=False,
             schedules__reservations__payment__is_canceled=False,
-            schedules__start_time__gt=datetime.datetime.today()
+            schedules__start_time__gt=datetime.datetime.today(),
         ).count()
 
     def get_watched_movies_count(self, member):
@@ -211,7 +202,7 @@ class MemberDetailSerializer(serializers.ModelSerializer):
             schedules__reservations__member=member,
             schedules__reservations__payment__isnull=False,
             schedules__reservations__payment__is_canceled=False,
-            schedules__start_time__lte=datetime.datetime.today()
+            schedules__start_time__lte=datetime.datetime.today(),
         ).count()
 
     def get_like_movies_count(self, member):
@@ -319,12 +310,6 @@ class WatchedMoviesSerializer(serializers.ModelSerializer):
     def get_running_time(self, obj):
         return reformat_duration(obj.schedule.movie.running_time)
 
-    def get_directors(self, reservation):
-        return [director.name for director in reservation.schedule.movie.directors.all()]
-
-    def get_genres(self, reservation):
-        return [genre.name for genre in reservation.schedule.movie.genres.all()]
-
 
 class RatingMoviesSerializer(serializers.ModelSerializer):
     rating_id = serializers.IntegerField(source='id')
@@ -399,7 +384,6 @@ class ReservedMoviesSerializer(serializers.ModelSerializer):
         else:
             discount_rate = 0.02
 
-        # Payment.discount_price null=True, blank=True 빼고 default=0 하는 방안
         if not reservation.payment.discount_price:
             discount_price = 0
         else:
