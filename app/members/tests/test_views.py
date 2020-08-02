@@ -123,3 +123,26 @@ class SocialSignUpViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('access', response.data)
         self.assertIn('refresh', response.data)
+
+
+class CheckUsernameDuplicateViewTest(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.url = reverse('members:duplicate_username')
+        cls.member = baker.make('members.Member')
+
+    def test_check_duplicate_username(self):
+        duplicate_username = self.member.username
+        invalid_data = {
+            "username": duplicate_username,
+        }
+        response = self.client.post(self.url, invalid_data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['detail'].code, UsernameDuplicateException.default_code)
+
+        valid_data = {
+            "username": "username",
+        }
+        response = self.client.post(self.url, valid_data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data)
