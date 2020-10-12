@@ -1,5 +1,5 @@
 # Description
-영화 예매 사이트 클론
+영화 예매 사이트 클론 (MegaBox)
 
 <br>
 
