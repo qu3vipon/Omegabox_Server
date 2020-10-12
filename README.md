@@ -26,7 +26,7 @@
 <br>
 
 # Document
-https://www.omegabox.xyz/doc/
+https://omegabox.xyz/doc/
 
 <br>
 
