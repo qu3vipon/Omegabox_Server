@@ -8,7 +8,7 @@
 - User Profile (프로필, 댓글, 좋아요, 선호 옵션)
 - Movie (박스오피스 정보, 평점)
 - Theatre (지역 별 상영 시간, 좌석 정보)
-- Reservation and Payment (Celery를 이용한 비결제 좌석 관리 & 부트페이 API 결제)
+- Reservation & Payment (Celery를 이용한 비결제 좌석 관리 & 부트페이 API 결제)
 
 <br>
 
